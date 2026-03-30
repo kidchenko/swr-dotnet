@@ -1,0 +1,431 @@
+---
+import "../styles/global.css";
+const base = import.meta.env.BASE_URL;
+---
+
+<!doctype html>
+<html lang="en" data-theme="dark">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>SWR .NET — Stale-While-Revalidate for Blazor</title>
+    <meta
+      name="description"
+      content="SWR .NET brings the stale-while-revalidate pattern to Blazor. Serve cached data instantly, revalidate in the background, keep your UI fresh."
+    />
+    <link rel="icon" type="image/svg+xml" href={`${base}favicon.svg`} />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap"
+      rel="stylesheet"
+    />
+    <script is:inline>
+      (function () {
+        var saved = localStorage.getItem("theme");
+        var prefer = window.matchMedia("(prefers-color-scheme: light)").matches
+          ? "light"
+          : "dark";
+        document.documentElement.setAttribute("data-theme", saved || prefer);
+      })();
+    </script>
+  </head>
+
+  <body
+    class="min-h-dvh overflow-x-hidden relative font-[Outfit,_-apple-system,_BlinkMacSystemFont,_system-ui,_sans-serif] antialiased bg-[var(--bg)] text-[var(--text)] transition-[background-color,color] duration-250 ease-linear"
+  >
+    <!-- Grid overlay -->
+    <div
+      class="fixed inset-0 z-0 pointer-events-none bg-[length:64px_64px]"
+      style="background-image: linear-gradient(var(--grid-line) 1px, transparent 1px), linear-gradient(90deg, var(--grid-line) 1px, transparent 1px); mask-image: radial-gradient(ellipse 80% 50% at 50% 0%, black, transparent); -webkit-mask-image: radial-gradient(ellipse 80% 50% at 50% 0%, black, transparent);"
+      aria-hidden="true"
+    >
+    </div>
+
+    <!-- NAV -->
+    <nav
+      class="fixed top-0 left-0 right-0 z-10 bg-[var(--nav-bg)] backdrop-blur-2xl transition-[background-color] duration-250 ease-linear"
+    >
+      <div
+        class="max-w-[1080px] mx-auto px-6 h-14 flex items-center justify-between"
+      >
+        <a
+          href={base}
+          class="text-[0.95rem] font-semibold text-[var(--text)] no-underline tracking-tight font-[JetBrains_Mono,_SF_Mono,_Fira_Code,_monospace]"
+        >
+          SWR .NET
+        </a>
+        <div class="flex items-center gap-6">
+          <a
+            href={`${base}getting-started/introduction/`}
+            class="text-[var(--text-3)] no-underline text-sm hover:text-[var(--text)] transition-colors duration-150"
+          >
+            Docs
+          </a>
+          <a
+            href="https://github.com/kidchenko/swr-dotnet"
+            target="_blank"
+            rel="noopener"
+            class="inline-flex items-center gap-1 text-[var(--text-3)] no-underline text-sm hover:text-[var(--text)] transition-colors duration-150"
+          >
+            GitHub
+            <svg
+              width="12"
+              height="12"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <path d="M7 17 17 7"></path>
+              <path d="M7 7h10v10"></path>
+            </svg>
+          </a>
+          <button
+            class="theme-toggle flex items-center justify-center w-8 h-8 bg-transparent border border-[var(--border)] rounded-md text-[var(--text-3)] cursor-pointer hover:text-[var(--text)] hover:border-[var(--text-3)] transition-[color,border-color] duration-150"
+            type="button"
+            aria-label="Toggle theme"
+          >
+            <svg
+              class="icon-sun"
+              width="16"
+              height="16"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <circle cx="12" cy="12" r="5"></circle>
+              <path
+                d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"
+              ></path>
+            </svg>
+            <svg
+              class="icon-moon hidden"
+              width="16"
+              height="16"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"
+              ></path>
+            </svg>
+          </button>
+        </div>
+      </div>
+    </nav>
+
+    <main>
+      <!-- HERO -->
+      <section class="pt-40 pb-20 relative z-1">
+        <div class="max-w-[1080px] mx-auto px-6">
+          <p
+            class="font-[JetBrains_Mono,_SF_Mono,_Fira_Code,_monospace] text-[0.8rem] text-[var(--text-3)] tracking-wider mb-5 animate-[fadeIn_0.5s_cubic-bezier(0.16,1,0.3,1)_both]"
+          >
+            Stale-While-Revalidate for Blazor
+          </p>
+          <h1
+            class="text-[clamp(3.5rem,9vw,7rem)] font-medium leading-[0.95] tracking-[-0.055em] mb-6 animate-[fadeIn_0.5s_cubic-bezier(0.16,1,0.3,1)_0.04s_both]"
+          >
+            SWR .NET
+          </h1>
+          <p
+            class="text-lg leading-relaxed text-[var(--text-2)] max-w-[440px] mb-10 animate-[fadeIn_0.5s_cubic-bezier(0.16,1,0.3,1)_0.08s_both]"
+          >
+            Cache first. Revalidate in the background.<br />
+            Keep every component in sync.
+          </p>
+          <div
+            class="flex items-center gap-8 flex-wrap animate-[fadeIn_0.5s_cubic-bezier(0.16,1,0.3,1)_0.12s_both]"
+          >
+            <a
+              href={`${base}getting-started/introduction/`}
+              class="inline-flex items-center gap-2 px-5 py-2.5 bg-[var(--text)] text-[var(--bg)] text-sm font-semibold no-underline rounded-md hover:opacity-85 hover:-translate-y-px active:scale-[0.97] transition-[opacity,transform,background-color,color] duration-150"
+            >
+              Get Started
+              <svg
+                width="15"
+                height="15"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2.5"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <path d="M5 12h14"></path>
+                <path d="m12 5 7 7-7 7"></path>
+              </svg>
+            </a>
+            <span
+              class="inline-flex items-center gap-3 px-4 py-2 rounded-md border border-[var(--border)] bg-[var(--surface)] font-[JetBrains_Mono,_SF_Mono,_Fira_Code,_monospace] text-sm transition-[border-color,background-color] duration-250"
+            >
+              <span class="text-[var(--text-3)] select-none">$</span>
+              <span class="text-[var(--text)]">dotnet add package Swr.Net</span>
+            </span>
+          </div>
+        </div>
+      </section>
+
+      <!-- CODE -->
+      <section
+        class="pb-24 relative z-1 animate-[fadeIn_0.6s_cubic-bezier(0.16,1,0.3,1)_0.2s_both]"
+      >
+        <div class="max-w-[1080px] mx-auto px-6">
+          <div class="code-block bg-[#0d1117] border border-[#1b1f27] rounded-lg overflow-hidden">
+            <span
+              class="block px-5 py-2 font-[JetBrains_Mono,_SF_Mono,_Fira_Code,_monospace] text-[0.7rem] text-[#484f58] border-b border-[#1b1f27] select-none"
+            >
+              UserProfile.razor
+            </span>
+            <pre
+              class="px-6 py-6 m-0 font-[JetBrains_Mono,_SF_Mono,_Fira_Code,_monospace] text-[0.82rem] leading-[1.8] text-[#c9d1d9] overflow-x-auto tab-[4]"><code><span class="text-[#d2a8ff]">@inject</span> <span class="text-[#79c0ff]">ISwr</span> Swr
+<span class="text-[#d2a8ff]">@inject</span> <span class="text-[#79c0ff]">HttpClient</span> Http
+
+<span class="text-[#d2a8ff]">@if</span> (user <span class="text-[#ff7b72]">is not null</span>)
+{'{'}
+    &lt;<span class="text-[#7ee787]">h2</span>&gt;<span class="text-[#d2a8ff]">@user.Name</span>&lt;/<span class="text-[#7ee787]">h2</span>&gt;
+    &lt;<span class="text-[#7ee787]">span</span>&gt;<span class="text-[#d2a8ff]">@user.Email</span>&lt;/<span class="text-[#7ee787]">span</span>&gt;
+{'}'}
+
+<span class="text-[#d2a8ff]">@code</span> {'{'}
+    <span class="text-[#ff7b72]">private</span> <span class="text-[#79c0ff]">User</span>? user;
+
+    <span class="text-[#ff7b72]">protected override async</span> <span class="text-[#79c0ff]">Task</span> OnInitializedAsync()
+    {'{'}
+        user = <span class="text-[#ff7b72]">await</span> Swr.GetAsync&lt;<span class="text-[#79c0ff]">User</span>&gt;(
+            <span class="text-[#a5d6ff]">"profile"</span>,
+            () =&gt; Http.GetFromJsonAsync&lt;<span class="text-[#79c0ff]">User</span>&gt;(<span class="text-[#a5d6ff]">"/api/me"</span>)
+        );
+    {'}'}
+{'}'}</code></pre>
+          </div>
+        </div>
+      </section>
+
+      <!-- HOW IT WORKS -->
+      <section class="pb-24 relative z-1">
+        <div class="max-w-[1080px] mx-auto px-6">
+          <div
+            class="grid grid-cols-3 max-md:grid-cols-1 border-t border-b border-[var(--border)] transition-[border-color] duration-250"
+          >
+            <div
+              class="py-10 px-8 max-md:px-0 max-md:py-7 border-r max-md:border-r-0 max-md:border-b border-[var(--border)] transition-[border-color] duration-250"
+            >
+              <span
+                class="block font-[JetBrains_Mono,_SF_Mono,_Fira_Code,_monospace] text-xs text-[var(--text-3)] mb-4"
+                >01</span
+              >
+              <h3 class="text-lg font-semibold tracking-tight mb-2">Stale</h3>
+              <p class="text-sm leading-relaxed text-[var(--text-2)]">
+                Return cached data instantly. Your UI is never blocked waiting
+                for the network.
+              </p>
+            </div>
+            <div
+              class="py-10 px-8 max-md:px-0 max-md:py-7 border-r max-md:border-r-0 max-md:border-b border-[var(--border)] transition-[border-color] duration-250"
+            >
+              <span
+                class="block font-[JetBrains_Mono,_SF_Mono,_Fira_Code,_monospace] text-xs text-[var(--text-3)] mb-4"
+                >02</span
+              >
+              <h3 class="text-lg font-semibold tracking-tight mb-2">
+                Revalidate
+              </h3>
+              <p class="text-sm leading-relaxed text-[var(--text-2)]">
+                Fetch fresh data in the background. No loading spinners, no
+                layout shifts.
+              </p>
+            </div>
+            <div class="py-10 px-8 max-md:px-0 max-md:py-7">
+              <span
+                class="block font-[JetBrains_Mono,_SF_Mono,_Fira_Code,_monospace] text-xs text-[var(--text-3)] mb-4"
+                >03</span
+              >
+              <h3 class="text-lg font-semibold tracking-tight mb-2">Update</h3>
+              <p class="text-sm leading-relaxed text-[var(--text-2)]">
+                Swap in the latest data. Every subscriber re-renders
+                automatically.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- FEATURES -->
+      <section class="pb-24 relative z-1">
+        <div class="max-w-[1080px] mx-auto px-6">
+          <div
+            class="border-t border-[var(--border)] transition-[border-color] duration-250"
+          >
+            <div
+              class="grid grid-cols-[200px_1fr] max-md:grid-cols-1 gap-8 max-md:gap-1.5 py-7 border-b border-[var(--border)] items-baseline transition-[border-color] duration-250"
+            >
+              <h3 class="text-sm font-medium text-[var(--text)]">
+                Global Cache
+              </h3>
+              <p
+                class="text-sm leading-relaxed text-[var(--text-2)] max-w-[520px]"
+              >
+                Share data across components. One fetch populates the cache,
+                every subscriber stays in sync without prop drilling.
+              </p>
+            </div>
+            <div
+              class="grid grid-cols-[200px_1fr] max-md:grid-cols-1 gap-8 max-md:gap-1.5 py-7 border-b border-[var(--border)] items-baseline transition-[border-color] duration-250"
+            >
+              <h3 class="text-sm font-medium text-[var(--text)]">
+                Auto Revalidation
+              </h3>
+              <p
+                class="text-sm leading-relaxed text-[var(--text-2)] max-w-[520px]"
+              >
+                Data refreshes on window focus, network reconnect, and
+                configurable intervals. Always fresh, zero effort.
+              </p>
+            </div>
+            <div
+              class="grid grid-cols-[200px_1fr] max-md:grid-cols-1 gap-8 max-md:gap-1.5 py-7 border-b border-[var(--border)] items-baseline transition-[border-color] duration-250"
+            >
+              <h3 class="text-sm font-medium text-[var(--text)]">
+                Blazor Native
+              </h3>
+              <p
+                class="text-sm leading-relaxed text-[var(--text-2)] max-w-[520px]"
+              >
+                Built for Blazor Server and WebAssembly from the ground up.
+                Integrates with the component lifecycle naturally.
+              </p>
+            </div>
+            <div
+              class="grid grid-cols-[200px_1fr] max-md:grid-cols-1 gap-8 max-md:gap-1.5 py-7 border-b border-[var(--border)] items-baseline transition-[border-color] duration-250"
+            >
+              <h3 class="text-sm font-medium text-[var(--text)]">Type Safe</h3>
+              <p
+                class="text-sm leading-relaxed text-[var(--text-2)] max-w-[520px]"
+              >
+                Full generic type support with compile-time checking. Fetcher
+                return types flow through the entire pipeline.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- BOTTOM CTA -->
+      <section class="pb-24 relative z-1">
+        <div class="max-w-[1080px] mx-auto px-6 flex justify-center">
+          <a
+            href={`${base}getting-started/introduction/`}
+            class="inline-flex items-center gap-2 px-5 py-2.5 bg-[var(--text)] text-[var(--bg)] text-sm font-semibold no-underline rounded-md hover:opacity-85 hover:-translate-y-px active:scale-[0.97] transition-[opacity,transform,background-color,color] duration-150"
+          >
+            Read the docs
+            <svg
+              width="15"
+              height="15"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2.5"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <path d="M5 12h14"></path>
+              <path d="m12 5 7 7-7 7"></path>
+            </svg>
+          </a>
+        </div>
+      </section>
+    </main>
+
+    <!-- FOOTER -->
+    <footer
+      class="border-t border-[var(--border)] py-6 relative z-1 transition-[border-color] duration-250"
+    >
+      <div
+        class="max-w-[1080px] mx-auto px-6 flex justify-between items-center"
+      >
+        <span class="text-xs text-[var(--text-3)]">MIT Licensed</span>
+        <a
+          href="https://github.com/kidchenko/swr-dotnet"
+          target="_blank"
+          rel="noopener"
+          class="text-xs text-[var(--text-3)] no-underline hover:text-[var(--text-2)] transition-colors duration-150"
+        >
+          GitHub
+        </a>
+      </div>
+    </footer>
+
+    <script is:inline>
+      document
+        .querySelector(".theme-toggle")
+        .addEventListener("click", function () {
+          var html = document.documentElement;
+          var next =
+            html.getAttribute("data-theme") === "dark" ? "light" : "dark";
+          html.setAttribute("data-theme", next);
+          localStorage.setItem("theme", next);
+        });
+    </script>
+  </body>
+</html>
+
+<style>
+  /* Theme tokens — CSS custom properties driven by data-theme */
+  :root {
+    --bg: #0a0a0a;
+    --surface: #111;
+    --border: #1e1e1e;
+    --text: #ededed;
+    --text-2: #888;
+    --text-3: #555;
+    --nav-bg: rgba(10, 10, 10, 0.8);
+    --grid-line: rgba(255, 255, 255, 0.025);
+  }
+
+  html[data-theme="light"] {
+    --bg: #fafafa;
+    --surface: #fff;
+    --border: #e5e5e5;
+    --text: #171717;
+    --text-2: #525252;
+    --text-3: #a3a3a3;
+    --nav-bg: rgba(250, 250, 250, 0.85);
+    --grid-line: rgba(0, 0, 0, 0.045);
+  }
+
+  /* Light mode: toggle icon swap */
+  html[data-theme="light"] .icon-sun {
+    display: none;
+  }
+  html[data-theme="light"] .icon-moon {
+    display: block;
+  }
+
+  /* Light mode: code block border */
+  html[data-theme="light"] .code-block {
+    border-color: #d1d5db;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+  }
+
+  /* Fade-in keyframe for Tailwind arbitrary animations */
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+      transform: translateY(10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+</style>

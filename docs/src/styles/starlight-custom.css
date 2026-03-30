@@ -1,0 +1,22 @@
+/* ============================================
+   SWR .NET — Starlight Theme Overrides
+   Monochromatic neutral palette
+   ============================================ */
+
+@import url("https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap");
+
+/* Light mode */
+:root {
+  --sl-color-accent-low: #f0f0f0;
+  --sl-color-accent: #404040;
+  --sl-color-accent-high: #171717;
+  --sl-font: "Outfit", -apple-system, BlinkMacSystemFont, sans-serif;
+  --sl-font-mono: "JetBrains Mono", "SF Mono", "Fira Code", monospace;
+}
+
+/* Dark mode */
+:root[data-theme="dark"] {
+  --sl-color-accent-low: #1e1e1e;
+  --sl-color-accent: #d4d4d4;
+  --sl-color-accent-high: #fafafa;
+}
