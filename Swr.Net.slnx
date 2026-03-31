@@ -1,0 +1,4 @@
+<Solution>
+  <Project Path="src/Swr.Net/Swr.Net.csproj" />
+  <Project Path="tests/Swr.Net.Tests/Swr.Net.Tests.csproj" />
+</Solution>
