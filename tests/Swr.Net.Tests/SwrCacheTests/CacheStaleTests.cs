@@ -6,7 +6,7 @@ namespace Swr.Net.Tests.SwrCacheTests;
 
 public class CacheStaleTests
 {
-    private static (SwrCache cache, MockHttpMessageHandler handler, Swr.Net.Store.InMemorySwrCacheStore store, Microsoft.Extensions.Time.Testing.FakeTimeProvider time) CreateWithStaleEntry(
+    private static (Swr cache, MockHttpMessageHandler handler, global::Swr.Net.Store.InMemorySwrCacheStore store, Microsoft.Extensions.Time.Testing.FakeTimeProvider time) CreateWithStaleEntry(
         string key = "api/data",
         string staleValue = "stale-value",
         Func<HttpRequestMessage, CancellationToken, Task<HttpResponseMessage>>? handlerFunc = null)

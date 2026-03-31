@@ -34,16 +34,16 @@ internal static class HttpResponseHelper
 
 internal static class SwrCacheFactory
 {
-    public static (SwrCache cache, MockHttpMessageHandler handler, Swr.Net.Store.InMemorySwrCacheStore store, Microsoft.Extensions.Time.Testing.FakeTimeProvider time) Create(
+    public static (Swr cache, MockHttpMessageHandler handler, global::Swr.Net.Store.InMemorySwrCacheStore store, Microsoft.Extensions.Time.Testing.FakeTimeProvider time) Create(
         SwrOptions? options = null,
         Func<HttpRequestMessage, CancellationToken, Task<HttpResponseMessage>>? handlerFunc = null)
     {
         var time = new Microsoft.Extensions.Time.Testing.FakeTimeProvider(DateTimeOffset.UtcNow);
-        var store = new Swr.Net.Store.InMemorySwrCacheStore(time);
+        var store = new global::Swr.Net.Store.InMemorySwrCacheStore(time);
         var handler = new MockHttpMessageHandler(handlerFunc ?? ((req, ct) =>
             Task.FromResult(HttpResponseHelper.JsonResponse("default"))));
         var http = new HttpClient(handler) { BaseAddress = new Uri("http://test.local") };
-        var cache = new SwrCache(http, store, options, time);
+        var cache = new Swr(http, store, options, time);
         return (cache, handler, store, time);
     }
 }

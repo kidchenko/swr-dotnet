@@ -5,7 +5,7 @@ using Swr.Net.Store;
 
 namespace Swr.Net;
 
-internal sealed class SwrCache : ISwr
+internal sealed class Swr : ISwr
 {
     private readonly HttpClient _http;
     private readonly ISwrStore _store;
@@ -15,7 +15,7 @@ internal sealed class SwrCache : ISwr
     private readonly CancellationTokenSource _cts = new();
     private bool _disposed;
 
-    public SwrCache(HttpClient http, ISwrStore store, SwrOptions? defaultOptions = null, TimeProvider? timeProvider = null)
+    public Swr(HttpClient http, ISwrStore store, SwrOptions? defaultOptions = null, TimeProvider? timeProvider = null)
     {
         _http = http;
         _store = store;
@@ -76,8 +76,36 @@ internal sealed class SwrCache : ISwr
         return result;
     }
 
-    public Task MutateAsync(Func<Task> mutation, params string[] invalidateKeys)
-        => throw new NotImplementedException("Implemented in Plan 03");
+    public async Task MutateAsync(Func<Task> mutation, params string[] invalidateKeys)
+    {
+        await mutation().ConfigureAwait(false);
+        InvalidateKeys(invalidateKeys);
+    }
+
+    public async Task<T?> PostAsync<T>(string url, object content, params string[] additionalInvalidateKeys)
+    {
+        var response = await _http.PostAsJsonAsync(url, content, _cts.Token).ConfigureAwait(false);
+        response.EnsureSuccessStatusCode();
+        var result = await response.Content.ReadFromJsonAsync<T>(_cts.Token).ConfigureAwait(false);
+        InvalidateUrlAndKeys(url, additionalInvalidateKeys);
+        return result;
+    }
+
+    public async Task<T?> PutAsync<T>(string url, object content, params string[] additionalInvalidateKeys)
+    {
+        var response = await _http.PutAsJsonAsync(url, content, _cts.Token).ConfigureAwait(false);
+        response.EnsureSuccessStatusCode();
+        var result = await response.Content.ReadFromJsonAsync<T>(_cts.Token).ConfigureAwait(false);
+        InvalidateUrlAndKeys(url, additionalInvalidateKeys);
+        return result;
+    }
+
+    public async Task DeleteAsync(string url, params string[] additionalInvalidateKeys)
+    {
+        var response = await _http.DeleteAsync(url, _cts.Token).ConfigureAwait(false);
+        response.EnsureSuccessStatusCode();
+        InvalidateUrlAndKeys(url, additionalInvalidateKeys);
+    }
 
     public void Invalidate(string key)
         => _store.Evict(SwrCacheKey.Normalize(key));
@@ -94,6 +122,19 @@ internal sealed class SwrCache : ISwr
         _disposed = true;
         _cts.Cancel();
         _cts.Dispose();
+    }
+
+    private void InvalidateKeys(string[] keys)
+    {
+        foreach (var key in keys)
+            _store.Evict(SwrCacheKey.Normalize(key));
+    }
+
+    private void InvalidateUrlAndKeys(string url, string[] additionalKeys)
+    {
+        _store.Evict(SwrCacheKey.Normalize(url));
+        foreach (var key in additionalKeys)
+            _store.Evict(SwrCacheKey.Normalize(key));
     }
 
     private async Task FetchAsync<T>(string url, string normalizedKey, SwrResult<T> result, SwrOptions opts, CancellationToken ct)

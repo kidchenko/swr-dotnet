@@ -6,7 +6,7 @@ namespace Swr.Net.Tests.SwrCacheTests;
 
 public class CacheFreshTests
 {
-    private static (SwrCache cache, MockHttpMessageHandler handler, Swr.Net.Store.InMemorySwrCacheStore store, Microsoft.Extensions.Time.Testing.FakeTimeProvider time) CreateWithFreshEntry(string key = "api/data", string value = "cached-value")
+    private static (Swr cache, MockHttpMessageHandler handler, global::Swr.Net.Store.InMemorySwrCacheStore store, Microsoft.Extensions.Time.Testing.FakeTimeProvider time) CreateWithFreshEntry(string key = "api/data", string value = "cached-value")
     {
         var tuple = SwrCacheFactory.Create();
         var (cache, handler, store, time) = tuple;
