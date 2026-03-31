@@ -1,25 +1,41 @@
 using System.Collections.Concurrent;
 using System.Net.Http.Json;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
+using Microsoft.Extensions.Options;
 using Swr.Net.Keys;
+using Swr.Net.Logging;
 using Swr.Net.Store;
 
 namespace Swr.Net;
 
 internal sealed class Swr : ISwr
 {
-    private readonly HttpClient _http;
+    private readonly IHttpClientFactory _httpClientFactory;
     private readonly ISwrStore _store;
     private readonly SwrOptions _defaultOptions;
+    private readonly ILogger<Swr> _logger;
     private readonly TimeProvider _timeProvider;
     private readonly ConcurrentDictionary<string, TaskCompletionSource<object?>> _inflight = new();
     private readonly CancellationTokenSource _cts = new();
     private bool _disposed;
 
-    public Swr(HttpClient http, ISwrStore store, SwrOptions? defaultOptions = null, TimeProvider? timeProvider = null)
+    public Swr(IHttpClientFactory httpClientFactory, ISwrStore store, IOptions<SwrOptions> options, ILogger<Swr> logger, TimeProvider? timeProvider = null)
     {
-        _http = http;
+        _httpClientFactory = httpClientFactory;
+        _store = store;
+        _defaultOptions = options.Value;
+        _logger = logger;
+        _timeProvider = timeProvider ?? TimeProvider.System;
+    }
+
+    // Test constructor — allows direct HttpClient injection without IHttpClientFactory
+    internal Swr(HttpClient http, ISwrStore store, SwrOptions? defaultOptions = null, TimeProvider? timeProvider = null)
+    {
+        _httpClientFactory = new SingleClientFactory(http);
         _store = store;
         _defaultOptions = defaultOptions ?? new SwrOptions();
+        _logger = NullLogger<Swr>.Instance;
         _timeProvider = timeProvider ?? TimeProvider.System;
     }
 
@@ -40,6 +56,7 @@ internal sealed class Swr : ISwr
             {
                 // EXPIRED — evict and treat as MISS
                 _store.Evict(normalizedKey);
+                _logger.LogCacheMiss(normalizedKey);
                 // fall through to MISS path
             }
             else if (age > opts.StaleTime)
@@ -49,6 +66,7 @@ internal sealed class Swr : ISwr
                 result.IsFromCache = true;
                 result.IsLoading = true;
                 result.SetCompleted(); // CRITICAL: Pitfall #4 — set completed before return
+                _logger.LogCacheStale(normalizedKey, age);
                 FireAndForget(ct => RevalidateAsync<T>(key, normalizedKey, result, opts, ct), _cts.Token);
                 return result;
             }
@@ -59,12 +77,14 @@ internal sealed class Swr : ISwr
                 result.IsFromCache = true;
                 result.IsLoading = false;
                 result.SetCompleted(); // CRITICAL: Pitfall #4 — set completed for FRESH too
+                _logger.LogCacheFresh(normalizedKey);
                 return result;
             }
         }
 
         // MISS — fetch from network
         result.IsLoading = true;
+        _logger.LogCacheMiss(normalizedKey);
         FireAndForget(ct => FetchAsync<T>(key, normalizedKey, result, opts, ct), _cts.Token);
         return result;
     }
@@ -84,7 +104,8 @@ internal sealed class Swr : ISwr
 
     public async Task<T?> PostAsync<T>(string url, object content, params string[] additionalInvalidateKeys)
     {
-        var response = await _http.PostAsJsonAsync(url, content, _cts.Token).ConfigureAwait(false);
+        var http = _httpClientFactory.CreateClient("swr");
+        var response = await http.PostAsJsonAsync(url, content, _cts.Token).ConfigureAwait(false);
         response.EnsureSuccessStatusCode();
         var result = await response.Content.ReadFromJsonAsync<T>(_cts.Token).ConfigureAwait(false);
         InvalidateUrlAndKeys(url, additionalInvalidateKeys);
@@ -93,7 +114,8 @@ internal sealed class Swr : ISwr
 
     public async Task<T?> PutAsync<T>(string url, object content, params string[] additionalInvalidateKeys)
     {
-        var response = await _http.PutAsJsonAsync(url, content, _cts.Token).ConfigureAwait(false);
+        var http = _httpClientFactory.CreateClient("swr");
+        var response = await http.PutAsJsonAsync(url, content, _cts.Token).ConfigureAwait(false);
         response.EnsureSuccessStatusCode();
         var result = await response.Content.ReadFromJsonAsync<T>(_cts.Token).ConfigureAwait(false);
         InvalidateUrlAndKeys(url, additionalInvalidateKeys);
@@ -102,7 +124,8 @@ internal sealed class Swr : ISwr
 
     public async Task DeleteAsync(string url, params string[] additionalInvalidateKeys)
     {
-        var response = await _http.DeleteAsync(url, _cts.Token).ConfigureAwait(false);
+        var http = _httpClientFactory.CreateClient("swr");
+        var response = await http.DeleteAsync(url, _cts.Token).ConfigureAwait(false);
         response.EnsureSuccessStatusCode();
         InvalidateUrlAndKeys(url, additionalInvalidateKeys);
     }
@@ -167,11 +190,13 @@ internal sealed class Swr : ISwr
             result.IsFromCache = false;
             result.IsLoading = false;
             result.NotifyRevalidated();
+            _logger.LogRevalidationComplete(normalizedKey);
         }
         catch (OperationCanceledException) { /* shutdown */ }
-        catch (Exception)
+        catch (Exception ex)
         {
             // REQ-03: Background revalidation errors silent — preserve stale data
+            _logger.LogRevalidationFailed(normalizedKey, ex.Message);
             result.IsLoading = false;
             result.NotifyRevalidated();
         }
@@ -214,22 +239,33 @@ internal sealed class Swr : ISwr
 
     private async Task<object?> FetchWithRetryAsync<T>(string url, int retryCount, TimeSpan baseDelay, CancellationToken ct)
     {
+        var http = _httpClientFactory.CreateClient("swr");
         for (int attempt = 0; attempt <= retryCount; attempt++)
         {
             try
             {
-                return await _http.GetFromJsonAsync<T>(url, ct).ConfigureAwait(false);
+                return await http.GetFromJsonAsync<T>(url, ct).ConfigureAwait(false);
             }
             catch (OperationCanceledException) { throw; }
-            catch when (attempt < retryCount)
+            catch (Exception ex) when (attempt < retryCount)
             {
+                _logger.LogRetry(attempt + 1, retryCount + 1, url, ex.Message);
                 var delay = TimeSpan.FromMilliseconds(
                     Math.Pow(2, attempt) * baseDelay.TotalMilliseconds);
                 await Task.Delay(delay, ct).ConfigureAwait(false);
             }
         }
-        // Final attempt failed — rethrow
-        return await _http.GetFromJsonAsync<T>(url, ct).ConfigureAwait(false);
+        // Final attempt — may throw
+        try
+        {
+            return await http.GetFromJsonAsync<T>(url, ct).ConfigureAwait(false);
+        }
+        catch (OperationCanceledException) { throw; }
+        catch (Exception ex)
+        {
+            _logger.LogFetchFailed(url, retryCount + 1, ex.Message);
+            throw;
+        }
     }
 
     private void FireAndForget(Func<CancellationToken, Task> work, CancellationToken ct)
@@ -246,5 +282,12 @@ internal sealed class Swr : ISwr
                 // Silently handle — individual paths already set error on result
             }
         }, ct);
+    }
+
+    private sealed class SingleClientFactory : IHttpClientFactory
+    {
+        private readonly HttpClient _client;
+        public SingleClientFactory(HttpClient client) => _client = client;
+        public HttpClient CreateClient(string name) => _client;
     }
 }

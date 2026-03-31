@@ -7,6 +7,12 @@
     <RootNamespace>Swr.Net</RootNamespace>
   </PropertyGroup>
   <ItemGroup>
+    <PackageReference Include="Microsoft.Extensions.Http" Version="8.*" />
+    <PackageReference Include="Microsoft.Extensions.Options" Version="8.*" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="8.*" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="8.*" />
+  </ItemGroup>
+  <ItemGroup>
     <InternalsVisibleTo Include="Swr.Net.Tests" />
   </ItemGroup>
 </Project>
