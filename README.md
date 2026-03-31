@@ -1,8 +1,8 @@
-# SWR .NET
+# Swr.Net
 
-A data fetching library for Blazor that implements the **stale-while-revalidate** caching strategy.
+[![NuGet](https://img.shields.io/nuget/vpre/Swr.Net)](https://www.nuget.org/packages/Swr.Net)
 
-Serve cached data first for instant UI, fetch fresh data in the background, and update all subscribers seamlessly.
+A .NET library that brings the stale-while-revalidate (SWR) caching strategy to Blazor and ASP.NET Core. Serve cached data instantly while revalidating in the background — the user always sees data fast, and it's always eventually fresh.
 
 ## How it works
 
@@ -13,50 +13,65 @@ Serve cached data first for instant UI, fetch fresh data in the background, and 
 ## Installation
 
 ```bash
-dotnet add package Swr.Net
+dotnet add package Swr.Net --prerelease
 ```
 
-## Quick start
+## Quick start — Blazor
 
 Register the services in `Program.cs`:
 
 ```csharp
-builder.Services.AddSwr();
+builder.Services.AddSwrForBlazor();
 ```
 
-Use it in any Blazor component:
+Use `ISwr` in any Blazor component:
 
 ```csharp
+@using Swr.Net
 @inject ISwr Swr
-@inject HttpClient Http
+@implements IDisposable
 
-@if (user is not null)
+@if (result is not null)
 {
-    <h2>@user.Name</h2>
-    <p>@user.Email</p>
+    @if (result.IsLoading)
+    {
+        <p>Loading...</p>
+    }
+    @if (result.Data is not null)
+    {
+        <h2>@result.Data.Name</h2>
+    }
 }
 
 @code {
-    private User? user;
+    private SwrResult<User>? result;
 
     protected override async Task OnInitializedAsync()
     {
-        user = await Swr.GetAsync<User>(
-            "user-profile",
-            () => Http.GetFromJsonAsync<User>("/api/me")
-        );
+        result = await Swr.GetAsync<User>("/api/users/me");
     }
+
+    public void Dispose() => result?.Dispose();
 }
 ```
 
-The first argument is a **cache key**. The second is a **fetcher** — an async function that retrieves the data. When another component uses the same key, it gets the cached value instantly.
+## Quick start — ASP.NET Core
+
+Register the services in `Program.cs`:
+
+```csharp
+builder.Services.AddSwrForAspNetCore();
+```
 
 ## Features
 
-- **Global Cache** — One fetch, every subscriber stays in sync
-- **Auto Revalidation** — Refreshes on focus, reconnect, and intervals
-- **Blazor Native** — Built for Server and WebAssembly
-- **Type Safe** — Full generic support with compile-time checking
+- **Stale-While-Revalidate** — Instant UI with cached data, fresh data in the background
+- **Request Deduplication** — Concurrent requests for the same key share one network call
+- **Automatic Retry** — Exponential backoff on failure with configurable attempts
+- **Cache Mutations** — Invalidate by key, prefix, or clear all
+- **Reactive Results** — `INotifyPropertyChanged` + `OnRevalidated` event for UI binding
+- **Platform-Aware DI** — Scoped for Blazor (per-circuit), Singleton for ASP.NET Core
+- **Pluggable Storage** — `ISwrStore` interface for custom cache backends
 
 ## Documentation
 
