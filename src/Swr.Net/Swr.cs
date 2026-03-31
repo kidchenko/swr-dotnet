@@ -189,8 +189,8 @@ internal sealed class Swr : ISwr
             result.Data = (T?)data;
             result.IsFromCache = false;
             result.IsLoading = false;
-            result.NotifyRevalidated();
             _logger.LogRevalidationComplete(normalizedKey);
+            result.NotifyRevalidated();
         }
         catch (OperationCanceledException) { /* shutdown */ }
         catch (Exception ex)
@@ -240,25 +240,23 @@ internal sealed class Swr : ISwr
     private async Task<object?> FetchWithRetryAsync<T>(string url, int retryCount, TimeSpan baseDelay, CancellationToken ct)
     {
         var http = _httpClientFactory.CreateClient("swr");
-        for (int attempt = 0; attempt <= retryCount; attempt++)
-        {
-            try
-            {
-                return await http.GetFromJsonAsync<T>(url, ct).ConfigureAwait(false);
-            }
-            catch (OperationCanceledException) { throw; }
-            catch (Exception ex) when (attempt < retryCount)
-            {
-                _logger.LogRetry(attempt + 1, retryCount + 1, url, ex.Message);
-                var delay = TimeSpan.FromMilliseconds(
-                    Math.Pow(2, attempt) * baseDelay.TotalMilliseconds);
-                await Task.Delay(delay, ct).ConfigureAwait(false);
-            }
-        }
-        // Final attempt — may throw
         try
         {
-            return await http.GetFromJsonAsync<T>(url, ct).ConfigureAwait(false);
+            for (int attempt = 0; attempt <= retryCount; attempt++)
+            {
+                try
+                {
+                    return await http.GetFromJsonAsync<T>(url, ct).ConfigureAwait(false);
+                }
+                catch (OperationCanceledException) { throw; }
+                catch (Exception ex) when (attempt < retryCount)
+                {
+                    _logger.LogRetry(attempt + 1, retryCount + 1, url, ex.Message);
+                    var delay = TimeSpan.FromMilliseconds(
+                        Math.Pow(2, attempt) * baseDelay.TotalMilliseconds);
+                    await Task.Delay(delay, ct).ConfigureAwait(false);
+                }
+            }
         }
         catch (OperationCanceledException) { throw; }
         catch (Exception ex)
@@ -266,6 +264,9 @@ internal sealed class Swr : ISwr
             _logger.LogFetchFailed(url, retryCount + 1, ex.Message);
             throw;
         }
+
+        // Unreachable — loop always returns or throws
+        throw new InvalidOperationException("FetchWithRetryAsync: unreachable code");
     }
 
     private void FireAndForget(Func<CancellationToken, Task> work, CancellationToken ct)
