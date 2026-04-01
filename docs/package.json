@@ -7,7 +7,8 @@
     "start": "astro dev",
     "build": "astro build",
     "preview": "astro preview",
-    "astro": "astro"
+    "astro": "astro",
+    "gen-api": "dotnet build ../src/Swr.Net/Swr.Net.csproj -c Release /p:CopyLocalLockFileAssemblies=true && dotnet tool run xmldocmd ../src/Swr.Net/bin/Release/net8.0/Swr.Net.dll src/content/docs/reference --source https://github.com/kidchenko/swr-dotnet/tree/main/src/Swr.Net --visibility public --clean && node scripts/add-frontmatter.mjs"
   },
   "dependencies": {
     "@astrojs/starlight": "^0.38.2",
