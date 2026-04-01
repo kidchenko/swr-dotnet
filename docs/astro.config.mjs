@@ -21,6 +21,17 @@ export default defineConfig({
                       { label: 'Introduction', slug: 'getting-started/introduction' },
                   ],
               },
+              {
+                  label: 'Guides',
+                  items: [
+                      { label: 'Blazor Integration', slug: 'guides/blazor-integration' },
+                      { label: 'ASP.NET Core Integration', slug: 'guides/aspnetcore-integration' },
+                  ],
+              },
+              {
+                  label: 'Reference',
+                  autogenerate: { directory: 'reference' },
+              },
           ],
       }),
 	],

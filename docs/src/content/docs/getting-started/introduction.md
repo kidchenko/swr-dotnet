@@ -3,71 +3,82 @@ title: Getting Started
 description: Install SWR .NET and build your first stale-while-revalidate component in Blazor.
 ---
 
-SWR .NET is a data fetching library for Blazor that implements the **stale-while-revalidate** caching strategy. It serves cached data first for instant UI, fetches fresh data in the background, and updates all subscribers seamlessly.
+SWR .NET brings the stale-while-revalidate caching strategy to .NET. Serve cached data instantly while revalidating in the background — the user always sees data fast, and it's always eventually fresh.
 
 ## Prerequisites
 
 - .NET 8.0 or later
-- A Blazor Server or Blazor WebAssembly project
+- A Blazor Server, Blazor WebAssembly, or ASP.NET Core project
 
 ## Installation
 
-Add the NuGet package to your project:
-
-```bash
-dotnet add package Swr.Net
+```bash title="Terminal"
+dotnet add package Swr.Net --prerelease
 ```
 
 ## Register Services
 
-Add SWR to your dependency injection container in `Program.cs`:
-
-```csharp
-builder.Services.AddSwr();
+```csharp title="Program.cs"
+builder.Services.AddSwrForBlazor();
 ```
+
+:::tip
+Using ASP.NET Core without Blazor? See the [ASP.NET Core Integration guide](/swr-dotnet/guides/aspnetcore-integration/) for singleton cache setup.
+:::
 
 ## Basic Usage
 
-Inject `ISwr` into any Blazor component and start fetching:
-
-```csharp
+```razor title="Components/Pages/Home.razor"
+@using Swr.Net
 @inject ISwr Swr
-@inject HttpClient Http
+@implements IDisposable
 
-@if (user is not null)
+@if (result is not null)
 {
-    <h2>@user.Name</h2>
-    <p>@user.Email</p>
+    @if (result.IsLoading)
+    {
+        <p>Loading...</p>
+    }
+    @if (result.Data is not null)
+    {
+        <h2>@result.Data.Name</h2>
+    }
 }
 
 @code {
-    private User? user;
+    private SwrResult<User>? result;
 
     protected override async Task OnInitializedAsync()
     {
-        user = await Swr.GetAsync<User>(
-            "user-profile",
-            () => Http.GetFromJsonAsync<User>("/api/me")
-        );
+        result = await Swr.GetAsync<User>("/api/users/me");
     }
+
+    public void Dispose() => result?.Dispose();
 }
 ```
 
-The first argument is a **cache key** — any string that uniquely identifies this data. The second is a **fetcher** — an async function that retrieves the data.
-
-When another component uses the same key, it gets the cached value instantly instead of making a duplicate request.
+- `GetAsync<T>` returns a `SwrResult<T>` that updates as data flows through cache → fetch → revalidation
+- The URL is both the fetch endpoint and the cache key
+- `@implements IDisposable` is required to prevent memory leaks from event subscriptions
 
 ## How It Works
 
-1. **Stale** — Return cached data immediately so the UI is never blocked.
+1. **Stale** — Return cached data instantly. The UI is never blocked.
 2. **Revalidate** — Fetch fresh data in the background.
-3. **Update** — Swap in the new data and re-render all subscribers.
+3. **Update** — Swap in new data. Every subscriber re-renders automatically.
 
-This pattern ensures your users always see data instantly while keeping it fresh behind the scenes.
+## Configuration
+
+```csharp title="Program.cs"
+builder.Services.AddSwrForBlazor(options =>
+{
+    options.StaleTime = TimeSpan.FromSeconds(30);
+    options.CacheTime = TimeSpan.FromMinutes(5);
+});
+```
 
 ## Next Steps
 
-- Configuration options (refresh intervals, retry, deduplication)
-- Error handling and loading states
-- Cache invalidation and mutation
-- API reference
+- [Blazor Integration Guide](/swr-dotnet/guides/blazor-integration/) — Full lifecycle: loading states, revalidation callbacks, mutations, disposal
+- [ASP.NET Core Integration Guide](/swr-dotnet/guides/aspnetcore-integration/) — Singleton cache, IHttpClientFactory, controllers and minimal APIs
+- [API Reference](/swr-dotnet/reference/) — Complete documentation for all public types
