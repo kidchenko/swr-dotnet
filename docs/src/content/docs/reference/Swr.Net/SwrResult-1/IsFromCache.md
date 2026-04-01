@@ -1,5 +1,5 @@
 ---
-title: "SwrResult&lt;T&gt;.IsFromCache property"
+title: "SwrResult<T>.IsFromCache property"
 ---
 
 # SwrResult&lt;T&gt;.IsFromCache property

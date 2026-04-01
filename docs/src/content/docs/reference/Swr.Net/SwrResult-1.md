@@ -1,5 +1,5 @@
 ---
-title: "SwrResult&lt;T&gt; class"
+title: "SwrResult<T> class"
 ---
 
 # SwrResult&lt;T&gt; class

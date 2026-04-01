@@ -1,5 +1,5 @@
 ---
-title: "SwrResult&lt;T&gt;.IsLoading property"
+title: "SwrResult<T>.IsLoading property"
 ---
 
 # SwrResult&lt;T&gt;.IsLoading property

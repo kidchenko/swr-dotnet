@@ -1,5 +1,5 @@
 ---
-title: "ISwr.PostAsync&lt;T&gt; method"
+title: "ISwr.PostAsync<T> method"
 ---
 
 # ISwr.PostAsync&lt;T&gt; method

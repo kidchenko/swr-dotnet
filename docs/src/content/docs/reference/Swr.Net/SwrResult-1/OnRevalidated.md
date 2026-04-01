@@ -1,5 +1,5 @@
 ---
-title: "SwrResult&lt;T&gt;.OnRevalidated event"
+title: "SwrResult<T>.OnRevalidated event"
 ---
 
 # SwrResult&lt;T&gt;.OnRevalidated event

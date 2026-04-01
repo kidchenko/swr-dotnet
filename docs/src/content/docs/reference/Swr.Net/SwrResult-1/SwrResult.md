@@ -1,5 +1,5 @@
 ---
-title: "SwrResult&lt;T&gt; constructor"
+title: "SwrResult<T> constructor"
 ---
 
 # SwrResult&lt;T&gt; constructor

@@ -1,6 +1,7 @@
 // @ts-check
 import { defineConfig } from 'astro/config';
 import starlight from '@astrojs/starlight';
+import starlightUtils from '@lorenzo_lewis/starlight-utils';
 
 import tailwindcss from '@tailwindcss/vite';
 
@@ -12,24 +13,31 @@ export default defineConfig({
   integrations: [
       starlight({
           title: 'SWR .NET',
+          plugins: [
+              starlightUtils({
+                  multiSidebar: {
+                      switcherStyle: 'horizontalList',
+                  },
+              }),
+          ],
           social: [{ icon: 'github', label: 'GitHub', href: 'https://github.com/kidchenko/swr-dotnet' }],
           customCss: ['./src/styles/global.css', './src/styles/starlight-custom.css'],
           sidebar: [
               {
-                  label: 'Getting Started',
+                  label: 'Docs',
                   items: [
-                      { label: 'Introduction', slug: 'getting-started/introduction' },
+                      { label: 'Getting Started', slug: 'docs' },
+                      {
+                          label: 'Guides',
+                          items: [
+                              { label: 'Blazor Integration', slug: 'docs/guides/blazor-integration' },
+                              { label: 'ASP.NET Core Integration', slug: 'docs/guides/aspnetcore-integration' },
+                          ],
+                      },
                   ],
               },
               {
-                  label: 'Guides',
-                  items: [
-                      { label: 'Blazor Integration', slug: 'guides/blazor-integration' },
-                      { label: 'ASP.NET Core Integration', slug: 'guides/aspnetcore-integration' },
-                  ],
-              },
-              {
-                  label: 'Reference',
+                  label: 'API Reference',
                   autogenerate: { directory: 'reference' },
               },
           ],

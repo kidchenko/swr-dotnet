@@ -20,3 +20,122 @@
   --sl-color-accent: #d4d4d4;
   --sl-color-accent-high: #fafafa;
 }
+
+/* ============================================
+   Sidebar: spacing, rounded borders, hover
+   ============================================ */
+
+/* More spacing between sidebar items */
+ul.top-level > li {
+  margin-block: 0.3rem;
+}
+
+ul.top-level li {
+  margin-block: 0.3rem;
+}
+
+/* Rounded borders and padding on sidebar links */
+ul.top-level a {
+  border-radius: 15px;
+  padding: 0.4rem 0.65rem;
+  min-height: 36px;
+  display: flex;
+  align-items: center;
+  transition: background-color 0.15s ease, transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+/* Hover: subtle scale + background lift */
+ul.top-level a:hover {
+  background-color: color-mix(in srgb, var(--sl-color-accent) 8%, transparent);
+  transform: scale(1.02);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
+}
+
+/* Active press feel */
+ul.top-level a:active {
+  transform: scale(0.98);
+}
+
+/* Current page highlight */
+ul.top-level a[aria-current="page"] {
+  background-color: color-mix(in srgb, var(--sl-color-accent) 12%, transparent);
+  color: var(--sl-color-accent-high);
+  font-weight: 600;
+  border-radius: 15px;
+}
+
+/* Group labels (Guides, etc.) — rounded and spaced */
+summary {
+  border-radius: 15px;
+  padding: 0.4rem 0.65rem;
+  transition: background-color 0.15s ease;
+}
+
+summary:hover {
+  background-color: color-mix(in srgb, var(--sl-color-accent) 8%, transparent);
+}
+
+/* Sidebar group nested list — add left spacing */
+details > ul {
+  padding-inline-start: 0.5rem;
+  margin-block-start: 0.15rem;
+}
+
+/* Multi-sidebar switcher tabs — single line, aligned with nav items */
+.tablist-wrapper {
+  padding-inline: 8px;
+}
+
+.tablist-wrapper ul {
+  display: flex;
+  flex-wrap: nowrap;
+  justify-content: space-between;
+  gap: 0.25rem;
+}
+
+.tablist-wrapper .tab {
+  white-space: nowrap;
+}
+
+.tablist-wrapper .tab a {
+  border-radius: 15px;
+  padding: 0.35rem 0.75rem;
+  font-size: 0.85rem;
+  background-color: color-mix(in srgb, var(--sl-color-accent) 6%, transparent);
+  transition: background-color 0.15s ease, transform 0.12s ease;
+}
+
+/* Sidebar nav items — align with switcher tabs */
+ul.top-level {
+  padding-inline: 0;
+}
+
+ul.top-level a {
+  padding-inline: 10.4px;
+}
+
+summary {
+  padding-inline: 10.4px;
+}
+
+.tablist-wrapper .tab a:hover {
+  transform: scale(1.03);
+}
+
+/* Getting Started — Lucide play icon before label */
+ul.top-level a[href$="/docs/"]::before {
+  content: '';
+  display: inline-block;
+  width: 1em;
+  height: 1em;
+  margin-inline-end: 0.4rem;
+  vertical-align: -0.125em;
+  background-color: currentColor;
+  -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolygon points='6 3 20 12 6 21 6 3'/%3E%3C/svg%3E");
+  mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolygon points='6 3 20 12 6 21 6 3'/%3E%3C/svg%3E");
+  -webkit-mask-size: contain;
+  mask-size: contain;
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+  flex-shrink: 0;
+}

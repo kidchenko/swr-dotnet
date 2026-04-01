@@ -1,5 +1,5 @@
 ---
-title: "ISwr.GetAsync&lt;T&gt; method"
+title: "ISwr.GetAsync<T> method"
 ---
 
 # ISwr.GetAsync&lt;T&gt; method

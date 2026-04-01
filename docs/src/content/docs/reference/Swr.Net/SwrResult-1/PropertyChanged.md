@@ -1,5 +1,5 @@
 ---
-title: "SwrResult&lt;T&gt;.PropertyChanged event"
+title: "SwrResult<T>.PropertyChanged event"
 ---
 
 # SwrResult&lt;T&gt;.PropertyChanged event

@@ -42,8 +42,11 @@ async function processFile(filePath) {
     return false;
   }
 
-  const title = h1Match[1].trim();
-  const frontmatter = `---\ntitle: "${title.replace(/"/g, '\\"')}"\n---\n\n`;
+  const rawTitle = h1Match[1].trim()
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>')
+    .replace(/&amp;/g, '&');
+  const frontmatter = `---\ntitle: "${rawTitle.replace(/"/g, '\\"')}"\n---\n\n`;
   await writeFile(filePath, frontmatter + content, 'utf8');
   return true;
 }

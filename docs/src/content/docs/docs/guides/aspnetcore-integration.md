@@ -199,6 +199,6 @@ This is different from Blazor, where each component disposes its own `SwrResult<
 
 ## Next Steps
 
-- [Getting Started](/swr-dotnet/getting-started/introduction/) — Installation and first example
-- [Blazor Integration](/swr-dotnet/guides/blazor-integration/) — Scoped cache, OnRevalidated callbacks, component disposal
+- [Getting Started](/swr-dotnet/docs/) — Installation and first example
+- [Blazor Integration](/swr-dotnet/docs/guides/blazor-integration/) — Scoped cache, OnRevalidated callbacks, component disposal
 - [API Reference](/swr-dotnet/reference/) — Complete documentation for all public types

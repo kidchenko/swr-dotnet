@@ -23,7 +23,7 @@ builder.Services.AddSwrForBlazor();
 ```
 
 :::tip
-Using ASP.NET Core without Blazor? See the [ASP.NET Core Integration guide](/swr-dotnet/guides/aspnetcore-integration/) for singleton cache setup.
+Using ASP.NET Core without Blazor? See the [ASP.NET Core Integration guide](/swr-dotnet/docs/guides/aspnetcore-integration/) for singleton cache setup.
 :::
 
 ## Basic Usage
@@ -79,6 +79,6 @@ builder.Services.AddSwrForBlazor(options =>
 
 ## Next Steps
 
-- [Blazor Integration Guide](/swr-dotnet/guides/blazor-integration/) — Full lifecycle: loading states, revalidation callbacks, mutations, disposal
-- [ASP.NET Core Integration Guide](/swr-dotnet/guides/aspnetcore-integration/) — Singleton cache, IHttpClientFactory, controllers and minimal APIs
+- [Blazor Integration Guide](/swr-dotnet/docs/guides/blazor-integration/) — Full lifecycle: loading states, revalidation callbacks, mutations, disposal
+- [ASP.NET Core Integration Guide](/swr-dotnet/docs/guides/aspnetcore-integration/) — Singleton cache, IHttpClientFactory, controllers and minimal APIs
 - [API Reference](/swr-dotnet/reference/) — Complete documentation for all public types

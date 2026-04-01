@@ -1,5 +1,5 @@
 ---
-title: "SwrResult&lt;T&gt;.Dispose method"
+title: "SwrResult<T>.Dispose method"
 ---
 
 # SwrResult&lt;T&gt;.Dispose method

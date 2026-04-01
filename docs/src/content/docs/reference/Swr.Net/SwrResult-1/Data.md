@@ -1,5 +1,5 @@
 ---
-title: "SwrResult&lt;T&gt;.Data property"
+title: "SwrResult<T>.Data property"
 ---
 
 # SwrResult&lt;T&gt;.Data property

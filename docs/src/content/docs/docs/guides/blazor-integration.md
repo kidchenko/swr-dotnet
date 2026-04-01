@@ -222,6 +222,6 @@ The `?.` null-conditional operator is safe here — if `OnInitializedAsync` thro
 
 ## Next Steps
 
-- [Getting Started](/swr-dotnet/getting-started/introduction/) — Installation and first component
-- [ASP.NET Core Integration](/swr-dotnet/guides/aspnetcore-integration/) — Singleton cache for server-side usage
+- [Getting Started](/swr-dotnet/docs/) — Installation and first component
+- [ASP.NET Core Integration](/swr-dotnet/docs/guides/aspnetcore-integration/) — Singleton cache for server-side usage
 - [API Reference](/swr-dotnet/reference/) — Complete documentation for all public types

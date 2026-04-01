@@ -1,5 +1,5 @@
 ---
-title: "ISwr.Get&lt;T&gt; method"
+title: "ISwr.Get<T> method"
 ---
 
 # ISwr.Get&lt;T&gt; method

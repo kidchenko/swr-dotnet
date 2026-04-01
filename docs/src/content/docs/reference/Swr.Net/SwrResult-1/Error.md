@@ -1,5 +1,5 @@
 ---
-title: "SwrResult&lt;T&gt;.Error property"
+title: "SwrResult<T>.Error property"
 ---
 
 # SwrResult&lt;T&gt;.Error property

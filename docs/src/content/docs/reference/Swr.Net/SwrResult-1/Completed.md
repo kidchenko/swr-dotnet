@@ -1,5 +1,5 @@
 ---
-title: "SwrResult&lt;T&gt;.Completed property"
+title: "SwrResult<T>.Completed property"
 ---
 
 # SwrResult&lt;T&gt;.Completed property
